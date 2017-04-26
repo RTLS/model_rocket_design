@@ -12,7 +12,7 @@ def main(argv):
   angle = None
   plotting = False
 
-  pdb.set_trace()
+  #pdb.set_trace()
 
   try:
     opts, args = getopt.getopt(argv, "hm:t:pa:", ["help", "mass", "time", "mode", "plotting", "angle"])
@@ -35,7 +35,8 @@ def main(argv):
 
   t, position, velocity, accel, thrust = trajectory(mass, dt, angle)
   stats(t, position, velocity, accel, thrust) 
-  plot(t, position, velocity, accel, thrust)
+  if plotting:
+    plot(t, position, velocity, accel, thrust)
 
 if __name__ == '__main__':
   main(sys.argv[1:])
