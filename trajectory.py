@@ -56,32 +56,38 @@ def trajectory(m=None, delta_t=None, angle=None):
 
   landed = False
   burnout = False
-  i = 0
+  (i, landed_counter) = (0,0)
   #pdb.set_trace()
   while not landed:
     # If we're on the ground (either before launch or after landing)
     if not burnout:
-      if t[-1] > g407_t[-1]:
-        burnout = True
-      if position[i,1] < 0:  # helps gets rid of weird startup dynamics
-        pass
-      else:
-        drag1 = drag(position[i,1], velocity[i,:], Cd1, A1)
-        m1 = (transform*thrust[i] - drag1)/mass[i] - np.array([0,g])
-        drag2 = drag(position[i,1], velocity[i,:]+dt*m1, Cd1, A1)
-        m2 = (transform*thrust[i+1] - drag2)/mass[i+1] - np.array([0,g])
+      drag1 = drag(position[i,1], velocity[i,:], Cd1, A1)
+      m1 = (transform*thrust[i] - drag1)/mass[i] - np.array([0,g])
+      drag2 = drag(position[i,1], velocity[i,:]+dt*m1, Cd1, A1)
+      m2 = (transform*thrust[i+1] - drag2)/mass[i+1] - np.array([0,g])
     else: # If we're burned out
       drag1 = drag(position[i,1], velocity[i,:], Cd2, A2)
       m1 = -1*drag1/dry_mass - np.array([0,g])
       drag2 = drag(position[i,1], velocity[i,:]+dt*m1, Cd2, A2)
       m2 = -1*drag2/dry_mass - np.array([0,g])
-      if position[-1,1] <= 0:
-        landed = True
 
     accel = np.append(accel, np.array([(m1+m2)/2.0]), axis=0)
     velocity = np.append(velocity, np.array([velocity[i,:] + dt*(m1+m2)/2.0]), axis=0) 
     position = np.append(position, np.array([position[i,:] + dt*(velocity[i,:] + velocity[i+1,:])/2.0]), axis=0)
     i+=1
     t = np.append(t, np.array([t[-1]+dt]))
+
+    # Check for burnout condition
+    if t[-1] > g407_t[-1]:    
+      burnout = True
+
+    # Check if we're on the ground... don't want to accelerate into the earth
+    if position[-1,1] <= 0:
+      accel[-1,1] = max(0, accel[-1,1])
+      velocity[-1,1] = max(0, velocity[-1,1])
+      position[-1,1] = max(0, position[-1,1])
+      landed_counter += 1
+      if landed_counter > 1/dt:    # Let's land for one second
+        landed = True
    
   return t, position, velocity, accel, thrust
