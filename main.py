@@ -29,7 +29,7 @@ def main(argv):
     elif opt in ('-t', '--time'):
       dt = float(arg)
     elif opt is '--mode':
-      print('Modes coming soon')
+      print('Modes coming soon, I swear!')
     elif opt in ('-p', '--print'):
       plotting = True
 

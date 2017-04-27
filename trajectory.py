@@ -15,10 +15,11 @@ def drag(height,u,Cd,A):
 
 def trajectory(m=None, delta_t=None, angle=None):
   """ Simulates a launch trajectory"""
+  # Computation is in SI units and uses modified Euler for numerical approximation
 
   #Simulation Parameters
   if delta_t is None:
-    dt = .01    #simulation steps
+    dt = .01    #time step size (seconds)
   else:
     dt = delta_t
 
@@ -43,8 +44,8 @@ def trajectory(m=None, delta_t=None, angle=None):
   mass = [elem + dry_mass for elem in g407_m]
   Cd1 = .75    # pre parachute deployment
   Cd2 = 1.5    # post parachute deployment
-  A1 = .0042   # pre parachute deployment
-  A2 = 1.65    # post parachute deploymen
+  A1 = .0029   # pre parachute deployment
+  A2 = .0729    # post parachute deploymen
 
   # Launch Parameters
   if angle is None:
