@@ -1,3 +1,4 @@
+import operator
 from matplotlib import pyplot as plt
 import pdb
 
@@ -11,6 +12,14 @@ def stats(t, position, velocity, accel, thrust):
   stats['peak_thrust'] = max(thrust)
 
   print(stats)
+
+def stats_mass_curve(t, position, velocity, accel, thrust, masses, altitudes):
+  index, altitude = max(enumerate(altitudes), key=operator.itemgetter(1))
+  print("Max altitude of " + str(altitude) + " with mass of " + str(masses[index]) + ".")
+  stats(t, position, velocity, accel, thrust)
+  plt.figure(1)
+  plt.plot(masses, altitudes)
+  plt.show()
 
 def plot(t, position, velocity, accel, thrust):
   # Altitude

@@ -36,7 +36,7 @@ def trajectory(m=None, delta_t=None, angle=None):
   g407_m = np.array([.1234, .0607])
   g407_m = [np.interp(i*dt, g407_t, g407_m) for i in xrange(int(g407_t[-1]/dt)+4)]    #motor mass over time
 
-  #Rocket Parameters
+  #Rocket Parameter
   if m is None:
     dry_mass = .4
   else:
@@ -58,20 +58,21 @@ def trajectory(m=None, delta_t=None, angle=None):
   landed = False
   burnout = False
   (i, landed_counter) = (0,0)
-  #pdb.set_trace()
+  # main loop.  perform calcs until we land
   while not landed:
-    # If we're on the ground (either before launch or after landing)
+    # before we're burned out we use equations that account for thrust and pre-parachute drag coeffs
     if not burnout:
       drag1 = drag(position[i,1], velocity[i,:], Cd1, A1)
       m1 = (transform*thrust[i] - drag1)/mass[i] - np.array([0,g])
       drag2 = drag(position[i,1], velocity[i,:]+dt*m1, Cd1, A1)
       m2 = (transform*thrust[i+1] - drag2)/mass[i+1] - np.array([0,g])
-    else: # If we're burned out
+    else: # If we're burned out there's no need to consider thrust, plus we use post-parachute drag coeffs
       drag1 = drag(position[i,1], velocity[i,:], Cd2, A2)
       m1 = -1*drag1/dry_mass - np.array([0,g])
       drag2 = drag(position[i,1], velocity[i,:]+dt*m1, Cd2, A2)
       m2 = -1*drag2/dry_mass - np.array([0,g])
 
+    # Here's the numerical integration for velocity and position. All modified euler
     accel = np.append(accel, np.array([(m1+m2)/2.0]), axis=0)
     velocity = np.append(velocity, np.array([velocity[i,:] + dt*(m1+m2)/2.0]), axis=0) 
     position = np.append(position, np.array([position[i,:] + dt*(velocity[i,:] + velocity[i+1,:])/2.0]), axis=0)
@@ -79,7 +80,7 @@ def trajectory(m=None, delta_t=None, angle=None):
     t = np.append(t, np.array([t[-1]+dt]))
 
     # Check for burnout condition
-    if t[-1] > g407_t[-1]:    
+    if t[-1] > g407_t[-1]:
       burnout = True
 
     # Check if we're on the ground... don't want to accelerate into the earth

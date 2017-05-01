@@ -3,7 +3,8 @@ import sys, getopt
 import pdb
 
 from trajectory import trajectory
-from data_vis import plot, stats
+from mass_estimate import mass_curve
+from data_vis import plot, stats, stats_mass_curve
 
 def main(argv):
   """ Main Function """
@@ -11,11 +12,14 @@ def main(argv):
   dt = None
   angle = None
   plotting = False
+  mode = "trajectory"
+  modes = ["trajectory", "mass-curve"]
 
-  #pdb.set_trace()
-
+  # This block allows control of the sim from the command line.  Default
+  # arguments for mass, dt, angle are found in the trajectory file, but other
+  # values can be specifed and passed in from this file.
   try:
-    opts, args = getopt.getopt(argv, "hm:t:pa:", ["help", "mass", "time", "mode", "plotting", "angle"])
+    opts, args = getopt.getopt(argv, "hm:t:pa:", ["help", "mass=", "time=", "mode=", "plotting", "angle="])
   except getopt.GetoptError:
     sys.exit(2)
   for opt, arg in opts:
@@ -28,15 +32,26 @@ def main(argv):
       angle = float(arg)
     elif opt in ('-t', '--time'):
       dt = float(arg)
-    elif opt is '--mode':
-      print('Modes coming soon, I swear!')
+    elif opt == '--mode':
+      if arg in modes:
+        mode = arg
+      else:
+        print(arg + " is not a valid mode.")
+        print("valid modes include:")
+        print(modes)
+        sys.exit()
     elif opt in ('-p', '--print'):
       plotting = True
 
-  t, position, velocity, accel, thrust = trajectory(mass, dt, angle)
-  stats(t, position, velocity, accel, thrust) 
-  if plotting:
-    plot(t, position, velocity, accel, thrust)
+  if mode == "trajectory":
+    # Calling the trajectory, stat, and plotting functions
+    t, position, velocity, accel, thrust = trajectory(mass, dt, angle)
+    stats(t, position, velocity, accel, thrust) 
+    if plotting:
+      plot(t, position, velocity, accel, thrust)
+  elif mode == "mass-curve":
+    t, position, velocity, accel, thrust, masses, altitudes = mass_curve()
+    stats_mass_curve(t, position, velocity, accel, thrust, masses, altitudes) 
 
 if __name__ == '__main__':
   main(sys.argv[1:])
