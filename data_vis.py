@@ -10,6 +10,8 @@ def stats(t, position, velocity, accel, thrust):
   stats['max_g_force'] = (max(accel[:,1])/9.81)
   stats['total_impulse'] = sum(thrust)*dt
   stats['peak_thrust'] = max(thrust)
+  stats['flight_time'] = max([t[i] if position[i,1] > 0 else 0 for i in xrange(len(t))])
+  stats['descent_rate'] = [velocity[i,1] for i in xrange(len(t)) if velocity[i,1] != 0][-1]
 
   print(stats)
 
@@ -19,6 +21,9 @@ def stats_mass_curve(t, position, velocity, accel, thrust, masses, altitudes):
   stats(t, position, velocity, accel, thrust)
   plt.figure(1)
   plt.plot(masses, altitudes)
+  plt.ylabel("Apogee Height [m]")
+  plt.xlabel("Dry Mass [kg]")
+  plt.title("Mass Curve")
   plt.show()
 
 def plot(t, position, velocity, accel, thrust):
@@ -34,13 +39,15 @@ def plot(t, position, velocity, accel, thrust):
   plt.ylabel('Distance [m]')
   plt.xlabel('Time [s]')
   plt.title('Down Range Distance')
-  
+  plt.tight_layout()
+
   # Velocity
   plt.figure(2)
   plt.plot(t, velocity[:,1])
   plt.ylabel('Velocity [m/s]')
   plt.xlabel('Time [s]')
   plt.title('Velocity')
+  plt.tight_layout()
   
   # Acceleration
   plt.figure(3)
@@ -54,5 +61,7 @@ def plot(t, position, velocity, accel, thrust):
   plt.ylabel('Thrust [N]')
   plt.xlabel('Time [s]')
   plt.title('Thrust')
+  plt.tight_layout()
+
   plt.show()
 

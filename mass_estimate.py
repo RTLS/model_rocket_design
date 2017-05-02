@@ -9,12 +9,12 @@ from trajectory import trajectory
 
 def mass_curve(min_mass = None, max_mass = None):
   if min_mass == None:
-    min_mass = .15
+    min_mass = .1
   if max_mass == None:
-    max_mass = .35
+    max_mass = .55
 
   altitudes = []
-  masses = np.linspace(min_mass,max_mass,10)
+  masses = np.linspace(min_mass,max_mass,20)
 
   for mass in masses:
     t, position, velocity, accel, thrust = trajectory(mass)
