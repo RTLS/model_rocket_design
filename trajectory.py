@@ -13,7 +13,8 @@ def drag(height,u,Cd,A):
   drag = .5*rho*u*np.absolute(u)*Cd*A
   return drag
 
-def trajectory(m=None, delta_t=None, angle=None):
+def trajectory(m=None, delta_t=None, angle=None, OD=2, chute_diam=20,
+              Cd1=.75, Cd2=1.5, design_impulse=None, burn_time=None, delay=None):
   """ Simulates a launch trajectory"""
   # Computation is in SI units and uses modified Euler for numerical approximation
 
@@ -32,25 +33,38 @@ def trajectory(m=None, delta_t=None, angle=None):
   accel = np.zeros([1,2], dtype=np.float)    #acceleration vector, 2 dimensional
 
   # Motor Parameters
-  g407_t = np.array([0, 0.024, 0.057, 0.252, 0.500, 0.765, 1.000, 1.250, 1.502, 1.751, 1.999, 2.121, 2.300, 9.70])
-  g407_thrust = np.array([0, 74.325, 67.005, 65.879, 63.063, 60.248, 54.054, 47.298, 36.599, 25.338, 12.951, 3.941, 0, 0])
-  thrust = [np.interp(i*dt1, g407_t, g407_thrust)  for i in xrange(int(g407_t[-1]/dt1)+4)]    #motor thrust over time
-  impulse = sum(thrust)*dt1
-  thrust = [element*97.14/impulse for element in thrust]
-  g407_t = np.array([0, g407_t[-1]])
-  g407_m = np.array([.1234, .0607])
-  g407_m = [np.interp(i*dt1, g407_t, g407_m) for i in xrange(int(g407_t[-1]/dt1)+4)]    #motor mass over time
+  if design_impulse is None:
+    design_impulse = 97.14
+    motor_t = np.array([0, 0.024, 0.057, 0.252, 0.500, 0.765, 1.000, 1.250, 1.502, 1.751, 1.999, 2.121, 2.300, 9.70])
+    motor_thrust = np.array([0, 74.325, 67.005, 65.879, 63.063, 60.248, 54.054, 47.298, 36.599, 25.338, 12.951, 3.941, 0, 0])
+    thrust = [np.interp(i*dt1, motor_t, motor_thrust)  for i in xrange(int(motor_t[-1]/dt1)+4)]    #motor thrust over time
+    impulse = sum(thrust)*dt1
+    thrust = [element*design_impulse/impulse for element in thrust]
+    motor_t = np.array([0, motor_t[-1]])
+    motor_m = np.array([.1234, .0607])
+    motor_m = [np.interp(i*dt1, motor_t, motor_m) for i in xrange(int(motor_t[-1]/dt1)+4)]    #motor mass over time
+  else:
+    motor_t = np.array([0, 0.024, 0.057, 0.252, 0.500, 0.765, 1.000, 1.250, 1.502, 1.751, 1.999, 2.121, 2.300])
+    motor_t = np.array([elem*burn_time/motor_t[-1] for elem in motor_t])
+    motor_t = np.append(motor_t, motor_t[-1]+delay)
+    motor_thrust = np.array([0, 74.325, 67.005, 65.879, 63.063, 60.248, 54.054, 47.298, 36.599, 25.338, 12.951, 3.941, 0, 0])
+    thrust = [np.interp(i*dt1, motor_t, motor_thrust)  for i in xrange(int(motor_t[-1]/dt1)+4)]    #motor thrust over time
+    impulse = sum(thrust)*dt1
+    thrust = [element*design_impulse/impulse for element in thrust]
+    motor_t = np.array([0, motor_t[-1]])
+    motor_m = np.array([.1234, .0607])
+    motor_m = [np.interp(i*dt1, motor_t, motor_m) for i in xrange(int(motor_t[-1]/dt1)+4)]    #motor mass over time
 
-  #Rocket Parameter
+
+  #Rocket Parameters
   if m is None:
     dry_mass = .23
   else:
     dry_mass = m    # kg
-  mass = [elem + dry_mass for elem in g407_m]
-  Cd1 = .75    # pre parachute deployment
-  Cd2 = 1.5    # post parachute deployment
-  A1 = .0035   # pre parachute deployment
-  A2 = math.pow((10*2.54/100),2)*3.14    # post parachute deployment
+  mass = [elem + dry_mass for elem in motor_m]
+
+  A1 = math.pow(OD/2.0*2.54/100,2)*3.14159
+  A2 = math.pow(chute_diam/2.0*2.54/100,2)*3.14159
 
   # Launch Parameters
   if angle is None:
@@ -94,7 +108,7 @@ def trajectory(m=None, delta_t=None, angle=None):
 
 
     # Check for burnout condition
-    if t[-1] > g407_t[-1]:
+    if t[-1] > motor_t[-1]:
       burnout = True
 
     # Check if we're on the ground... don't want to accelerate into the earth
