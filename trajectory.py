@@ -13,6 +13,11 @@ def drag(height,u,Cd,A):
   drag = .5*rho*u*np.absolute(u)*Cd*A
   return drag
 
+#class motor():
+#
+#  def __init_(impulse, burn_time, delay, wet_mass, dry_mass):
+#    self.impulse = 
+
 def trajectory(m=None, delta_t=None, angle=None, OD=2, chute_diam=20,
               Cd1=.75, Cd2=1.5, design_impulse=None, burn_time=None, delay=None):
   """ Simulates a launch trajectory"""
