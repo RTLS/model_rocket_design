@@ -1,5 +1,6 @@
 import operator
 from matplotlib import pyplot as plt
+from matplotlib.font_manager import FontProperties
 import pdb
 
 def stats(t, position, velocity, accel, thrust, drag, name=None):
@@ -19,10 +20,10 @@ def stats(t, position, velocity, accel, thrust, drag, name=None):
 
   print(stats)
 
-def stats_mass_curve(t, position, velocity, accel, thrust, masses, altitudes):
+def stats_mass_curve(t, position, velocity, accel, thrust, drag, masses, altitudes):
   index, altitude = max(enumerate(altitudes), key=operator.itemgetter(1))
   print("Max altitude of " + str(altitude) + " with mass of " + str(masses[index]) + ".")
-  stats(t, position, velocity, accel, thrust)
+  stats(t, position, velocity, accel, thrust, drag)
   plt.figure(1)
   plt.plot(masses, altitudes)
   plt.ylabel("Apogee Height [m]")
@@ -30,44 +31,58 @@ def stats_mass_curve(t, position, velocity, accel, thrust, masses, altitudes):
   plt.title("Mass Curve")
   plt.show()
 
-def plot(t, position, velocity, accel, thrust, name=None):
+def plot(t, position, velocity, accel, thrust, drag, name=None, export=False):
   if name is None:
     name = "Mockheed Lartin"
   # Altitude
   plt.figure(1)
   plt.subplot(211)
-  plt.plot(t, position[:,1])
+  plt.plot(t, position[:,1], label=name)
   plt.ylabel('Height [m]')
   plt.xlabel('Time [s]')
-  plt.title(name + ' Altitude')
+  plt.title('Altitude')
   plt.subplot(212)
-  plt.plot(t, position[:,0])
+  plt.plot(t, position[:,0], label=name)
   plt.ylabel('Distance [m]')
   plt.xlabel('Time [s]')
-  plt.title(name + ' Down Range Distance')
+  plt.title(' Down Range Distance')
   plt.tight_layout()
 
   # Velocity
   plt.figure(2)
-  plt.plot(t, velocity[:,1])
+  plt.plot(t, velocity[:,1], label=name)
   plt.ylabel('Velocity [m/s]')
   plt.xlabel('Time [s]')
-  plt.title(name + ' Velocity')
+  plt.title('Velocity')
   plt.tight_layout()
   
   # Acceleration
   plt.figure(3)
   plt.subplot(211)
-  plt.plot(t[0:len(thrust)], accel[0:len(thrust),1])
+  plt.plot(t[0:len(thrust)-4], accel[0:len(thrust)-4,1], label=name)
   plt.ylabel('Acceleration m/s^2')
   plt.xlabel('Time [s]')
-  plt.title(name + ' Acceleration')
+  plt.title(' Acceleration')
   plt.subplot(212)
-  plt.plot(t[0:len(thrust)], thrust)
+  plt.plot(t[0:len(thrust)], thrust, label=name)
   plt.ylabel('Thrust [N]')
   plt.xlabel('Time [s]')
-  plt.title(name + ' Thrust')
+  plt.title(' Thrust')
   plt.tight_layout()
 
-  plt.show()
+  if not export:
+    plt.show()
+
+def save_plots():
+  fontP = FontProperties()
+  fontP.set_size('small')
+  fig = plt.figure(1)
+  plt.legend(prop=fontP)
+  plt.savefig('../lab3/plots/' + 'Altitude' + '.pdf')
+  plt.figure(2)
+  plt.legend(prop=fontP)
+  plt.savefig('../lab3/plots/' + 'Velocity' + '.pdf')
+  plt.figure(3)
+  plt.legend(prop=fontP)
+  plt.savefig('../lab3/plots/' + 'Acceleration' + '.pdf')
 
