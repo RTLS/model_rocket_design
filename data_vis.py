@@ -2,7 +2,7 @@ import operator
 from matplotlib import pyplot as plt
 import pdb
 
-def stats(t, position, velocity, accel, thrust, name=None):
+def stats(t, position, velocity, accel, thrust, drag, name=None):
   if name is None:
     name = "Mockheed Lartin"
   stats = {}
@@ -15,6 +15,7 @@ def stats(t, position, velocity, accel, thrust, name=None):
   stats['peak_thrust'] = max(thrust)
   stats['flight_time'] = max([t[i] if position[i,1] > 0 else 0 for i in xrange(len(t))])
   stats['descent_rate'] = [velocity[i,1] for i in xrange(len(t)) if velocity[i,1] != 0][-1]
+  stats['max_drag'] = max(drag[:,1])
 
   print(stats)
 
