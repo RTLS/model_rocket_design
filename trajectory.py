@@ -129,4 +129,14 @@ def trajectory(motor, m=None, delta_t=None, angle=None, OD=2, chute_diam=20, Cd1
       if landed_counter > 1/dt2:    # Let's land for one second
         landed = True
    
+  return si_to_ips(t, position, velocity, accel, thrust, drag)
+
+
+def si_to_ips(t, position, velocity, accel, thrust, drag):
+  position = np.array([[elem*3.28084 for elem in elems] for elems in position])
+  velocity = np.array([[elem*3.28084 for elem in elems] for elems in velocity])
+  accel = np.array([[elem*3.28084 for elem in elems] for elems in accel])
+  thrust = [elem*0.224809 for elem in thrust]
+  drag = np.array([elem*0.224809 for elem in drag])
+
   return t, position, velocity, accel, thrust, drag

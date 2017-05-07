@@ -9,14 +9,14 @@ def stats(t, position, velocity, accel, thrust, drag, name=None):
   stats = {}
   dt = t[1] - t[0]
   stats['name'] = name
-  stats['max_altitude'] = max(position[:,1])
-  stats['max_velocity'] = max(velocity[:,1])
-  stats['max_g_force'] = (max(accel[:,1])/9.81)
-  stats['total_impulse'] = sum(thrust)*dt
-  stats['peak_thrust'] = max(thrust)
-  stats['flight_time'] = max([t[i] if position[i,1] > 0 else 0 for i in xrange(len(t))])
-  stats['descent_rate'] = [velocity[i,1] for i in xrange(len(t)) if velocity[i,1] != 0][-1]
-  stats['max_drag'] = max(drag[:,1])
+  stats['max_altitude [ft]'] = max(position[:,1])
+  stats['max_velocity [ft/s]'] = max(velocity[:,1])
+  stats['max_g_force'] = (max(accel[:,1])/32.18)
+  stats['total_impulse [lbf-s]'] = sum(thrust)*dt
+  stats['peak_thrust [lbf]'] = max(thrust)
+  stats['flight_time [s]'] = max([t[i] if position[i,1] > 0 else 0 for i in xrange(len(t))])
+  stats['descent_rate [ft/s]'] = [velocity[i,1] for i in xrange(len(t)) if velocity[i,1] != 0][-1]
+  stats['max_drag [lbf]'] = max(drag[:,1])
 
   print(stats)
 
@@ -26,7 +26,7 @@ def stats_mass_curve(t, position, velocity, accel, thrust, drag, masses, altitud
   stats(t, position, velocity, accel, thrust, drag)
   plt.figure(1)
   plt.plot(masses, altitudes)
-  plt.ylabel("Apogee Height [m]")
+  plt.ylabel("Apogee Height [ft]")
   plt.xlabel("Dry Mass [kg]")
   plt.title("Mass Curve")
   plt.show()
@@ -38,12 +38,12 @@ def plot(t, position, velocity, accel, thrust, drag, name=None, export=False):
   plt.figure(1)
   plt.subplot(211)
   plt.plot(t, position[:,1], label=name)
-  plt.ylabel('Height [m]')
+  plt.ylabel('Height [ft]')
   plt.xlabel('Time [s]')
   plt.title('Altitude')
   plt.subplot(212)
   plt.plot(t, position[:,0], label=name)
-  plt.ylabel('Distance [m]')
+  plt.ylabel('Distance [ft]')
   plt.xlabel('Time [s]')
   plt.title(' Down Range Distance')
   plt.tight_layout()
@@ -51,7 +51,7 @@ def plot(t, position, velocity, accel, thrust, drag, name=None, export=False):
   # Velocity
   plt.figure(2)
   plt.plot(t, velocity[:,1], label=name)
-  plt.ylabel('Velocity [m/s]')
+  plt.ylabel('Velocity [ft/s]')
   plt.xlabel('Time [s]')
   plt.title('Velocity')
   plt.tight_layout()
@@ -60,12 +60,12 @@ def plot(t, position, velocity, accel, thrust, drag, name=None, export=False):
   plt.figure(3)
   plt.subplot(211)
   plt.plot(t[0:len(thrust)-4], accel[0:len(thrust)-4,1], label=name)
-  plt.ylabel('Acceleration m/s^2')
+  plt.ylabel('Acceleration ft/s^2')
   plt.xlabel('Time [s]')
   plt.title(' Acceleration')
   plt.subplot(212)
   plt.plot(t[0:len(thrust)], thrust, label=name)
-  plt.ylabel('Thrust [N]')
+  plt.ylabel('Thrust [lbf]')
   plt.xlabel('Time [s]')
   plt.title(' Thrust')
   plt.tight_layout()
@@ -74,15 +74,25 @@ def plot(t, position, velocity, accel, thrust, drag, name=None, export=False):
     plt.show()
 
 def save_plots():
+  """ Saves figures 1, 2, and 3 using labels for legend.  These figures must be populated by a call for plot()."""
   fontP = FontProperties()
   fontP.set_size('small')
+
   fig = plt.figure(1)
-  plt.legend(prop=fontP)
-  plt.savefig('../lab3/plots/' + 'Altitude' + '.pdf')
-  plt.figure(2)
-  plt.legend(prop=fontP)
-  plt.savefig('../lab3/plots/' + 'Velocity' + '.pdf')
-  plt.figure(3)
-  plt.legend(prop=fontP)
-  plt.savefig('../lab3/plots/' + 'Acceleration' + '.pdf')
+  lgd = plt.legend(bbox_to_anchor=(0.91,-0.1), loc="lower right", ncol=3,
+            bbox_transform=fig.transFigure,  prop=fontP)
+  plt.savefig('../lab3/plots/' + 'Altitude' + '.pdf',
+              bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+  fig = plt.figure(2)
+  lgd = plt.legend(bbox_to_anchor=(0.91,-0.1), loc="lower right", ncol=3,
+            bbox_transform=fig.transFigure,  prop=fontP)
+  plt.savefig('../lab3/plots/' + 'Velocity' + '.pdf',
+              bbox_extra_artists=(lgd,), bbox_inches='tight')
+
+  fig = plt.figure(3)
+  lgd = plt.legend(bbox_to_anchor=(0.91,-0.1), loc="lower right", ncol=3,
+            bbox_transform=fig.transFigure,  prop=fontP)
+  plt.savefig('../lab3/plots/' + 'Acceleration' + '.pdf',
+              bbox_extra_artists=(lgd,), bbox_inches='tight')
 
