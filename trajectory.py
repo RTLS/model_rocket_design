@@ -4,45 +4,7 @@ import numpy as np
 import pdb
 
 
-def calc_drag(height,u,Cd,A):
-  height = 3.28084*height
-  T = 59 - 0.00356 * height    # Temp in Farenheighteit
-  p = 473.1 * np.exp(1.73 - 0.000048 * height)    # Pressure
-  rho = p / (1718 * (T + 459.7))    # State equation
-  rho = 515.379 * rho    # Converting to kg/m^3
-  drag = .5*rho*u*np.absolute(u)*Cd*A
-  return drag
-
-class rocket_engine:
-
-  def __init__(self,impulse, burn_time, delay, wet_mass, dry_mass):
-    self.impulse = impulse
-    self.burn_time = burn_time
-    self.delay = delay
-    self.wet_mass = wet_mass
-    self.dry_mass = dry_mass
-
-  def thrust_profile(self,dt):
-    t = np.array([0, 0.024, 0.057, 0.252, 0.500, 0.765, 1.000, 1.250, 1.502, 1.751, 1.999, 2.121, 2.300])
-    t = np.array([elem*self.burn_time/t[-1] for elem in t])
-    t = np.append(t, t[-1]+self.delay)
-    thrust = np.array([0, 74.325, 67.005, 65.879, 63.063, 60.248, 54.054, 47.298, 36.599, 25.338, 12.951, 3.941, 0, 0])
-    thrust = [np.interp(i*dt, t, thrust)  for i in xrange(int(t[-1]/dt)+4)]    #motor thrust over time
-    impulse = sum(thrust)*dt
-    thrust = [element*self.impulse/impulse for element in thrust]
-    return thrust
-
-  def mass_profile(self, dt):
-    t = np.array([0, self.burn_time + self.delay])
-    m = np.array([self.wet_mass, self.dry_mass])
-    m = [np.interp(i*dt, t, m) for i in xrange(int(t[-1]/dt)+4)]    #motor mass over time
-    return m
-
-  def burnout_time(self):
-    return self.burn_time + self.delay
-
-
-def trajectory(motor, m=None, delta_t=None, angle=None, OD=2, chute_diam=20, Cd1=.85, Cd2=1.5):
+def trajectory(motor, m=None, delta_t=None, angle=None, OD=2, chute_diam=28, Cd1=.759, Cd2=1.5):
   """ Simulates a launch trajectory"""
   # Computation is in SI units and uses modified Euler for numerical approximation
 
@@ -50,7 +12,7 @@ def trajectory(motor, m=None, delta_t=None, angle=None, OD=2, chute_diam=20, Cd1
   # "Dynamic" timestep- more important to be high fideltity during non linear
   # portion
   if delta_t is None:
-    dt1 = .002    #time step size (seconds)
+    dt1 = .007    #time step size (seconds)
   else:
     dt1 = delta_t
   dt2 = dt1*5
@@ -65,7 +27,7 @@ def trajectory(motor, m=None, delta_t=None, angle=None, OD=2, chute_diam=20, Cd1
 
   #Rocket Parameters
   if m is None:
-    dry_mass = .23
+    dry_mass = .262    # kg
   else:
     dry_mass = m    # kg
   mass = [elem + dry_mass for elem in motor_m]
@@ -75,7 +37,7 @@ def trajectory(motor, m=None, delta_t=None, angle=None, OD=2, chute_diam=20, Cd1
 
   # Launch Parameters
   if angle is None:
-    flight_angle = 2/180.0*math.pi    #rads
+    flight_angle = 0/180.0*math.pi    #rads
   else:
     flight_angle = angle/180.0*math.pi
   transform = np.array([math.sin(flight_angle), math.cos(flight_angle)])
@@ -140,3 +102,43 @@ def si_to_ips(t, position, velocity, accel, thrust, drag):
   drag = np.array([elem*0.224809 for elem in drag])
 
   return t, position, velocity, accel, thrust, drag
+
+def calc_drag(height,u,Cd,A):
+    LAUNCH_ALT = 2500    # ft
+    height = 3.28084*height
+    T = 105 - 0.00356 * height    # Temp in Farenheighteit
+    p = 473.1 * np.exp(1.73 - 0.000048 * (height + LAUNCH_ALT))    # Pressure
+    rho = p / (1718 * (T + 459.7))    # State equation
+    rho = 515.379 * rho    # Converting to kg/m^3
+    drag = .5*rho*u*np.absolute(u)*Cd*A
+    return drag
+
+class rocket_engine:
+
+  def __init__(self,impulse, burn_time, delay, wet_mass, dry_mass):
+    self.impulse = impulse
+    self.burn_time = burn_time
+    self.delay = delay
+    self.wet_mass = wet_mass
+    self.dry_mass = dry_mass
+
+  def thrust_profile(self,dt):
+    t = np.array([0, 0.024, 0.057, 0.252, 0.500, 0.765, 1.000, 1.250, 1.502, 1.751, 1.999, 2.121, 2.300])
+    t = np.array([elem*self.burn_time/t[-1] for elem in t])
+    t = np.append(t, t[-1]+self.delay)
+    thrust = np.array([0, 74.325, 67.005, 65.879, 63.063, 60.248, 54.054, 47.298, 36.599, 25.338, 12.951, 3.941, 0, 0])
+    thrust = [np.interp(i*dt, t, thrust)  for i in xrange(int(t[-1]/dt)+4)]    #motor thrust over time
+    impulse = sum(thrust)*dt
+    thrust = [element*self.impulse/impulse for element in thrust]
+    return thrust
+
+  def mass_profile(self, dt):
+    t = np.array([0, self.burn_time + self.delay])
+    m = np.array([self.wet_mass, self.dry_mass])
+    m = [np.interp(i*dt, t, m) for i in xrange(int(t[-1]/dt)+4)]    #motor mass over time
+    return m
+
+  def burnout_time(self):
+    return self.burn_time + self.delay
+
+
