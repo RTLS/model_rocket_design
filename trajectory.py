@@ -106,7 +106,7 @@ def si_to_ips(t, position, velocity, accel, thrust, drag):
 def calc_drag(height,u,Cd,A):
     LAUNCH_ALT = 2500    # ft
     height = 3.28084*height
-    T = 105 - 0.00356 * height    # Temp in Farenheighteit
+    T = 105 - 0.00356 * height    # Temp in fahrenheit
     p = 473.1 * np.exp(1.73 - 0.000048 * (height + LAUNCH_ALT))    # Pressure
     rho = p / (1718 * (T + 459.7))    # State equation
     rho = 515.379 * rho    # Converting to kg/m^3
